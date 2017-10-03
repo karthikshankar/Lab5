@@ -44,6 +44,8 @@ public class MorseDecoder {
      */
     private static double[] binWavFilePower(final WavFile inputFile)
             throws IOException, WavFileException {
+        //anything above threshold - is a dash or a dot, anything below is a space
+        //with power threshold, which is above normal threshold, anything above is a dash or dot
 
         /*
          * We should check the results of getNumFrames to ensure that they are safe to cast to int.
@@ -52,9 +54,12 @@ public class MorseDecoder {
         double[] returnBuffer = new double[totalBinCount];
 
         double[] sampleBuffer = new double[BIN_SIZE * inputFile.getNumChannels()];
+
         for (int binIndex = 0; binIndex < totalBinCount; binIndex++) {
             // Get the right number of samples from the inputFile
             // Sum all the samples together and store them in the returnBuffer
+            int framesRead = inputFile.readFrames(sampleBuffer, BIN_SIZE);
+            returnBuffer[binIndex] = framesRead;
         }
         return returnBuffer;
     }
@@ -81,7 +86,18 @@ public class MorseDecoder {
          * There are four conditions to handle. Symbols should only be output when you see
          * transitions. You will also have to store how much power or silence you have seen.
          */
+        boolean isDot = false;
+        boolean isDash = false;
+        boolean isSpace = false;
+        int binCount = 0;
 
+        for (int i = 0; i < powerMeasurements.length; i++) {
+            if (powerMeasurements[i] < POWER_THRESHOLD) {
+                isSpace = true;
+            } else {
+                binCount++;
+            }
+        }
         // if ispower and waspower
         // else if ispower and not waspower
         // else if issilence and wassilence
